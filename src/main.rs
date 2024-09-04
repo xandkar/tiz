@@ -18,6 +18,7 @@ fn main() -> anyhow::Result<()> {
             .map_err(|_| anyhow!("Invalid time zone: {:?}", zone))?;
         zones.push(zone);
     }
+    let tz_local: Option<Tz> = std::env::var("TZ").ok().and_then(|tz| tz.parse().ok());
     let hour_in_zone: HashMap<Tz, u32> = zones
         .into_iter()
         .map(|tz| (tz, Utc::now().with_timezone(&tz).hour()))
@@ -31,11 +32,14 @@ fn main() -> anyhow::Result<()> {
         let mut row: Vec<String> = hours
             .iter()
             .map(|h| {
-                let h_str = h.to_string();
+                let hour = console::style(h);
                 if *h == tz_h {
-                    console::style(h_str).bold().to_string()
+                    match tz_local {
+                        Some(tz_local) if tz == tz_local => hour.green().bold().to_string(),
+                        _ => hour.white().bold().to_string(),
+                    }
                 } else {
-                    console::style(h_str).dim().to_string()
+                    hour.white().dim().to_string()
                 }
             })
             .collect();

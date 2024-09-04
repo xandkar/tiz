@@ -1,6 +1,6 @@
 [package]
 name = "tiz"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 description = "Time In Zones: print a table of times in given zones."
 repository = "https://github.com/xandkar/tiz"
