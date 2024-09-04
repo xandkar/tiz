@@ -2,6 +2,10 @@
 name = "tiz"
 version = "0.1.0"
 edition = "2021"
+description = "Time In Zones: print a table of times in given zones."
+repository = "https://github.com/xandkar/tiz"
+categories = ["command-line-utilities"]
+license = "MIT"
 
 [dependencies]
 anyhow = { version = "1.0.86", features = ["backtrace"] }
@@ -9,3 +13,7 @@ chrono = "0.4"
 chrono-tz = "0.7"
 comfy-table = "7.1.1"
 console = { version = "0.15.8", default-features = false, features = ["ansi-parsing"] }
+
+[profile.release]
+codegen-units = 1  # Disable parallelization, allowing maximum size reduction.
+lto = true         # Enable Link Time Optimizations.
