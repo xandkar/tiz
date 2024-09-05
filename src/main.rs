@@ -1,27 +1,44 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Debug};
 
-use anyhow::{anyhow, bail};
+use anyhow::anyhow;
 use chrono::{Timelike, Utc};
 use chrono_tz::Tz;
 
 fn main() -> anyhow::Result<()> {
-    let zones = args_parse()?;
-    println!("{}", table(&zones[..], tz_local()));
+    let zones = read_input()?;
+    let local = tz_local();
+    let table = table(&zones[..], local);
+    println!("{table}");
     Ok(())
 }
 
-fn args_parse() -> anyhow::Result<Vec<Tz>> {
-    let mut args = std::env::args();
-    let exec = args.next().unwrap_or_else(|| unreachable!());
-    let args: Vec<String> = args.collect();
-    let mut zones: Vec<Tz> = Vec::new();
-    if args.is_empty() {
-        bail!("USAGE: {} TIME_ZONE [TIME_ZONE] ...", exec);
+fn read_input() -> anyhow::Result<Vec<Tz>> {
+    let mut input: Vec<String> = std::env::args().skip(1).collect();
+    if input.is_empty() {
+        input = stdin_read_lines()?;
+    };
+    zones_parse(&input[..])
+}
+
+fn stdin_read_lines() -> anyhow::Result<Vec<String>> {
+    let mut lines = Vec::new();
+    for line_result in std::io::stdin().lines() {
+        let line = line_result?;
+        lines.push(line)
     }
-    for zone in args {
-        let zone = zone
+    Ok(lines)
+}
+
+fn zones_parse<S>(strings: &[S]) -> anyhow::Result<Vec<Tz>>
+where
+    S: AsRef<str> + Debug,
+{
+    let mut zones: Vec<Tz> = Vec::new();
+    for s in strings {
+        let zone = s
+            .as_ref()
             .parse::<Tz>()
-            .map_err(|_| anyhow!("Invalid time zone: {:?}", zone))?;
+            .map_err(|_| anyhow!("Invalid time zone: {:?}", s))?;
         zones.push(zone);
     }
     Ok(zones)
