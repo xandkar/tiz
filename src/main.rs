@@ -65,24 +65,17 @@ fn table(zones: &[Tz], tz_local: Option<Tz>) -> comfy_table::Table {
     for (tz, tz_hour) in tz_hours_ordered(zones) {
         let mut row: Vec<String> = (0..24)
             .map(|hour| {
-                if colors_enabled {
-                    let hour_style = console::style(hour);
-                    match (hour == tz_hour, tz_local) {
-                        (true, Some(tz_local)) if tz == tz_local => {
-                            hour_style.green().bold()
+                if hour == tz_hour {
+                    match tz_local {
+                        Some(tz_local) if tz == tz_local => {
+                            hour_fmt_active_local(hour, colors_enabled)
                         }
-                        (true, _) => hour_style.white().bold(),
-                        _ => hour_style.white().dim(),
+                        Some(_) | None => {
+                            hour_fmt_active(hour, colors_enabled)
+                        }
                     }
-                    .to_string()
                 } else {
-                    match (hour == tz_hour, tz_local) {
-                        (true, Some(tz_local)) if tz == tz_local => {
-                            format!(">{hour}<")
-                        }
-                        (true, _) => format!("[{hour}]"),
-                        _ => format!(" {hour} "),
-                    }
+                    hour_fmt_inactive(hour, colors_enabled)
                 }
             })
             .collect();
@@ -90,4 +83,28 @@ fn table(zones: &[Tz], tz_local: Option<Tz>) -> comfy_table::Table {
         table.add_row(row);
     }
     table
+}
+
+fn hour_fmt_inactive(hour: u32, colors_enabled: bool) -> String {
+    if colors_enabled {
+        console::style(hour).white().dim().to_string()
+    } else {
+        format!(" {hour} ")
+    }
+}
+
+fn hour_fmt_active(hour: u32, colors_enabled: bool) -> String {
+    if colors_enabled {
+        console::style(hour).white().bold().to_string()
+    } else {
+        format!("[{hour}]")
+    }
+}
+
+fn hour_fmt_active_local(hour: u32, colors_enabled: bool) -> String {
+    if colors_enabled {
+        console::style(hour).green().bold().to_string()
+    } else {
+        format!(">{hour}<")
+    }
 }
