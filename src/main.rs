@@ -44,18 +44,29 @@ fn tz_hours_ordered(zones: &[Tz]) -> Vec<(Tz, u32)> {
 fn table(zones: &[Tz], tz_local: Option<Tz>) -> comfy_table::Table {
     let mut table = comfy_table::Table::new();
     table.load_preset(comfy_table::presets::NOTHING); // No borders or dividers.
+    let colors_enabled = console::colors_enabled();
     for (tz, tz_hour) in tz_hours_ordered(zones) {
         let mut row: Vec<String> = (0..24)
             .map(|hour| {
-                let hour_style = console::style(hour);
-                match (hour == tz_hour, tz_local) {
-                    (true, Some(tz_local)) if tz == tz_local => {
-                        hour_style.green().bold()
+                if colors_enabled {
+                    let hour_style = console::style(hour);
+                    match (hour == tz_hour, tz_local) {
+                        (true, Some(tz_local)) if tz == tz_local => {
+                            hour_style.green().bold()
+                        }
+                        (true, _) => hour_style.white().bold(),
+                        _ => hour_style.white().dim(),
                     }
-                    (true, _) => hour_style.white().bold(),
-                    _ => hour_style.white().dim(),
+                    .to_string()
+                } else {
+                    match (hour == tz_hour, tz_local) {
+                        (true, Some(tz_local)) if tz == tz_local => {
+                            format!(">{hour}<")
+                        }
+                        (true, _) => format!("[{hour}]"),
+                        _ => format!(" {hour} "),
+                    }
                 }
-                .to_string()
             })
             .collect();
         row.insert(0, tz.to_string());
