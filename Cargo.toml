@@ -10,7 +10,7 @@ license = "MIT"
 [dependencies]
 anyhow = { version = "1.0.86", features = ["backtrace"] }
 chrono = "0.4"
-chrono-tz = "0.7"
+chrono-tz = "0.10"
 comfy-table = "7.1.1"
 console = { version = "0.15.8", default-features = false, features = ["ansi-parsing"] }
 
