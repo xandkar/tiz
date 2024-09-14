@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt::Debug};
+use std::{collections::HashMap, fmt::Debug, io, path::Path};
 
 use anyhow::anyhow;
 use chrono::{Timelike, Utc};
@@ -13,20 +13,37 @@ fn main() -> anyhow::Result<()> {
 }
 
 fn read_input() -> anyhow::Result<Vec<Tz>> {
-    let mut input: Vec<String> = std::env::args().skip(1).collect();
-    if input.is_empty() {
-        input = stdin_read_lines()?;
+    let input_files: Vec<String> = std::env::args().skip(1).collect();
+    let input_files: Vec<&str> =
+        input_files.iter().map(|s| s.as_str()).collect();
+    let input: Vec<String> = match input_files.iter().as_slice() {
+        [] => read_stdin()?,
+        ["-z" | "--zones", zones @ ..] => {
+            zones.iter().map(|s| s.to_string()).collect()
+        }
+        input_files => read_files(&input_files[..])?,
     };
     zones_parse(&input[..])
 }
 
-fn stdin_read_lines() -> anyhow::Result<Vec<String>> {
-    let mut lines = Vec::new();
+fn read_stdin() -> anyhow::Result<Vec<String>> {
+    let mut lines: Vec<String> = Vec::new();
     for line_result in std::io::stdin().lines() {
         let line = line_result?;
         lines.push(line)
     }
     Ok(lines)
+}
+
+fn read_files<P: AsRef<Path>>(paths: &[P]) -> io::Result<Vec<String>> {
+    let mut all_lines: Vec<String> = Vec::new();
+    for path in paths {
+        let contents = std::fs::read_to_string(path)?;
+        let mut file_lines: Vec<String> =
+            contents.lines().map(|s| s.to_string()).collect();
+        all_lines.append(&mut file_lines);
+    }
+    Ok(all_lines)
 }
 
 fn zones_parse<S>(strings: &[S]) -> anyhow::Result<Vec<Tz>>
